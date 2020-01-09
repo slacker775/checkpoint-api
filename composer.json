@@ -1,0 +1,28 @@
+{
+    "name": "slacker775/checkpoint-api",
+    "description": "Check Point Security Management API Library",
+    "type": "library",
+    "require": {
+        "jane-php/open-api-runtime": "^5.2"
+    },
+    "require-dev": {
+        "jane-php/open-api": "^5.2",
+        "symfony/http-client": "^5.0",
+        "nyholm/psr7": "^1.2",
+        "symfony/var-dumper": "^5.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Hollis",
+            "email": "dhollis@davehollis.com"
+        }
+    ],
+        "autoload" : {
+                "psr-4" : {
+                        "CheckPoint\\Api\\": "generated/",
+                        "CheckPoint\\" : "src/"
+                }
+        }
+
+}

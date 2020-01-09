@@ -1,0 +1,633 @@
+openapi: 3.0.1
+info:
+  title: Check Point Security Management API
+  description: 'R80 adds a new way to read information and to send commands to the Check Point management server. Just like it is possible to create objects, work on the security policy using the SmartConsole GUI, it is now possible to do the same using command line tools and through web-services.'
+  version: '1.5'
+paths:
+  /web_api/add-host:
+    post:
+      summary: Create new object.
+      operationId: addHost
+      tags:
+        - host
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/host'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/host'
+        4XX:
+          $ref: '#/components/responses/errorResponse'
+        5XX:
+          $ref: '#/components/responses/errorResponse'
+  /web_api/discard:
+    post:
+      summary: All changes done by user are discarded and removed from database.
+      operationId: discard
+      tags:
+        - session
+      parameters:
+        - name: uid
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid: 
+                  type: string
+                  description: Session unique identifier. Specify it to discard a different session than the one you currently use.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  number-of-discarded-changes:
+                    type: integer
+  /web_api/disconnect:
+    post:
+      summary: Disconnect a private session
+      operationId: disconnect
+      tags:
+        - session
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid:
+                  type: string
+                  description: Session unique identifier.
+                discard:
+                  type: boolean
+                  description: Discard all changes committed during the session.
+                  default: false
+              required: 
+                - uid
+      responses:
+        200:
+          $ref: '#/components/responses/successResponse'
+        4XX:
+          $ref: '#/components/responses/errorResponse'
+        5XX:
+          $ref: '#/components/responses/errorResponse'
+  /web_api/keepalive:
+    post:
+      summary: Keep the session valid/alive
+      operationId: keepalive
+      tags:
+        - session
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      responses:
+        200:
+          $ref: '#/components/responses/successResponse'
+  /web_api/login:
+    post:
+      summary: Log in to the server with username and password.
+      description: 'Log in to the server with username and password. The server shows your
+      session unique identifier. Enter this session unique identifier in the
+      ''X-chkp-sid'' header of each request.'
+      operationId: login
+      tags:
+        - session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                password:
+                  type: string
+#                continue-last-session:
+#                  type: boolean
+#                  default: false
+#                domain:
+#                  type: string
+#                  nullable: true
+#                enter-last-published-session:
+#                  type: boolean
+#                  default: false
+#                read-only:
+#                  type: boolean
+#                  default: false
+#                session-comments:
+#                  type: string
+#                  nullable: true
+#                session-description:
+#                  type: string
+#                  nullable: true
+                session-name:
+                  type: string
+                  nullable: true
+                session-timeout:
+                  type: integer
+                  default: 600
+                  nullable: true
+              required:
+                - user
+                - password
+      responses:
+        200:
+          $ref: '#/components/responses/loginResponse'
+        400:
+          $ref: '#/components/responses/errorResponse'
+        500:
+          $ref: '#/components/responses/errorResponse'
+  /web_api/logout:
+    post:
+      summary: Logout of current session
+      operationId: logout
+      tags:
+        - session
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      responses:
+        200:
+          $ref: '#/components/responses/successResponse'
+  /web_api/publish:
+    post:
+      summary: Publish all changes from this session
+      operationId: publish
+      tags:
+        - session
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid:
+                  type: string
+                  description: Session unique identifier. Specify it to publish a different session than the one you currently use.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task-id:
+                    type: string
+        400:
+          $ref: '#/components/responses/errorResponse'
+        500:
+          $ref: '#/components/responses/errorResponse'
+  /web_api/show-group:
+    post:
+      summary: Retrieve existing object using object name or uid.
+      operationId: getGroup
+      tags:
+        - group
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                uid:
+                  type: string
+                  nullable: true
+                show-as-ranges:
+                  type: boolean
+                  default: false
+                details-level:
+                  type: string
+                  enum:
+                    - 'uid'
+                    - 'standard'
+                    - 'full'
+                  default: 'standard'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/group'
+        400:
+          $ref: '#/components/responses/errorResponse'
+  /web_api/show-groups:
+    post:
+      summary: Retrieve all objects.
+      operationId: getGroups
+      tags:
+        - group
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  default: 50
+                offset:
+                  type: integer
+                  default: 0
+                show-as-ranges:
+                  type: boolean
+                  default: false
+                dereference-group-members:
+                  type: boolean
+                  default: true
+                show-membership:
+                  type: boolean
+                  default: true
+                details-level:
+                  type: string
+                  enum:
+                    - 'uid'
+                    - 'standard'
+                    - 'full'
+                  default: standard
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  from: 
+                    type: integer
+                  to:
+                    type: integer
+                  total:
+                    type: integer
+                  objects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/objectReference'
+        400:
+          $ref: '#/components/responses/errorResponse'
+  /web_api/show-host:
+    post:
+      summary: Retrieve existing object using object name or uid.
+      operationId: getHost
+      tags:
+        - host
+      parameters:
+        - $ref: '#/components/parameters/sessionId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                uid:
+                  type: string
+                  nullable: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/host'
+components:
+  schemas:
+    datetime:
+      type: object
+      properties:
+        posix: 
+          type: integer
+        iso-8601:
+          type: string
+    domain:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+          format: uuid
+        domain-type:
+          type: string
+    group:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+          format: uuid
+        type:
+          type: string
+        domain:
+          $ref: '#/components/schemas/domain'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectReference'
+        icon:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectReference'
+        meta-info:
+          $ref: '#/components/schemas/metaInfo'
+        read-only:
+          type: boolean
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectReference'
+    host:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+          format: uuid
+        type:
+          type: string
+        domain:
+          $ref: '#/components/schemas/domain'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectReference'
+        icon:
+          type: string
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/interface'
+        ipv4-address:
+          type: string
+        ipv6-address:
+          type: string
+        meta-info:
+          $ref: '#/components/schemas/metaInfo'
+        nat-settings:
+          $ref: '#/components/schemas/natSettings'
+        read-only:
+          type: boolean
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectReference'
+        host-servers:
+          $ref: '#/components/schemas/hostServers'
+        color:
+          type: string
+        comments:
+          type: string
+    hostServers:
+      type: object
+      properties:
+        dns-server:
+          type: boolean
+        mail-server:
+          type: boolean
+        web-server: 
+          type: boolean
+        web-server-config:
+          $ref: '#/components/schemas/webServerConfig'
+    interface:
+      type: object
+      properties:
+        name:
+          type: string
+        subnet4:
+          type: string
+        subnet6:
+          type: string
+        uid:
+          type: string
+          format: uuid
+        mask-length4:
+          type: integer
+        mask-length6:
+          type: integer
+        subnet-mask:
+          type: string
+        type:
+          type: string
+        domain:
+          $ref: '#/components/schemas/domain'
+        icon:
+          type: string
+        meta-info:
+          $ref: '#/components/schemas/metaInfo'
+        read-only:
+          type: boolean
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/objectReference'
+    messageList:
+      type: object
+      properties:
+        message:
+          type: string
+        current-session:
+          type: boolean
+    metaInfo:
+      type: object
+      properties:
+        creation-time:
+          $ref: '#/components/schemas/datetime'
+        creator:
+          type: string
+        last-modifier:
+          type: string
+        last-modify-time:
+          $ref: '#/components/schemas/datetime'
+        lock:
+          type: string
+        validation-state:
+          type: string
+    natSettings:
+      type: object
+      properties:
+        auto-rule:
+          type: boolean
+        hide-behind:
+          type: string
+          nullable: true
+        install-on:
+          type: string
+        ipv4-address:
+          type: string
+        ipv6-address:
+          type: string
+        method:
+          type: string
+    objectReference:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+          format: uuid
+        type:
+          type: string
+        domain:
+          $ref: '#/components/schemas/domain'
+    tag:
+      type: object
+      properties:
+        name:
+          type: string
+        uid:
+          type: string
+          format: uuid
+        type:
+          type: string
+        domain:
+          $ref: '#/components/schemas/domain'
+    webServerConfig:
+      type: object
+      properties:
+        additional-ports:
+          type: array
+          items:
+            type: string
+        application-engines:
+          type: array
+          items:
+            type: string
+        listen-standard-port:
+          type: boolean
+        operating-system:
+          type: string
+        protected-by:
+          type: string
+        standard-port-number:
+          type: integer
+  requestBodies:
+    loginRequest:
+      description: 'Login request parameters'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              user:
+                type: string
+              password:
+                type: string
+              continue-last-session:
+                type: boolean
+              domain:
+                type: string
+              enter-last-published-session:
+                type: boolean
+              read-only:
+                type: boolean
+              session-comments:
+                type: string
+              session-description:
+                type: string
+              session-name:
+                type: string
+              session-timeout:
+                type: integer    
+  responses:
+    errorResponse:
+      description: Failure
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              warnings:
+                type: array
+                items:
+                  $ref: '#/components/schemas/messageList'
+              errors:
+                type: array
+                items:
+                  $ref: '#/components/schemas/messageList'
+              blocking-errors:
+                type: array
+                items:
+                  $ref: '#/components/schemas/messageList'
+              code:
+                type: string
+    successResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    loginResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              sid: 
+                type: string
+                description: Session unique identifier. Enter this session unique identifier in the 'X-chkp-sid' header of each request.
+              uid:
+                type: string
+                description:  Session object unique identifier. This identifier may be used in the discard API to discard changes that were made in this session, when administrator is working from another session, or in the 'switch-session' API.
+              url:
+                type: string
+                description: URL that was used to reach the API server.
+              session_timeout:                  
+                type: integer
+                description: Session expiration timeout in seconds.
+              last-login-was-at:
+                $ref: '#/components/schemas/datetime'
+              last-login-from:
+                type: string
+              api-server-version:
+                type: string
+              standby:
+                type: boolean
+                description: True if this management server is in the standby mode.
+  parameters:
+    sessionId:
+      name: X-chkp-sid
+      in: header
+      schema:
+        type: string
+      required: true
+        
